@@ -10,7 +10,6 @@ router = APIRouter()
 
 @router.post("/post-create/", response_model=Post)
 async def create_post(title: str, content: str, category_id: int, user_id: int):
-    post_id = str(uuid.uuid4())
     published_at = datetime.now()
     query = posts.insert().values(
         title=title,
@@ -26,6 +25,15 @@ async def create_post(title: str, content: str, category_id: int, user_id: int):
 async def get_posts():
     query = posts.select()
     return await database.fetch_all(query)
+
+@router.get('/get-post-id/{post_id}', response_model=Post)
+async def get_post_id(post_id: int):
+    query = posts.select().where(posts.c.id == post_id)
+    post = await database.fetch_one(query)
+    if post is None:
+        raise HTTPException(status_code=404, detail="Пост не был найден")
+    return post
+
 
 @router.put('/post-update/{post_id}', response_model=Post)
 async def update_post(post_id: int, title: str, content: str):
