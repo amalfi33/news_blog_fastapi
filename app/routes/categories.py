@@ -1,5 +1,5 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, Form, HTTPException, Path, Query
 from app.models.category import categories
 from app.models.post import posts
 from app.database import database
@@ -11,7 +11,7 @@ import uuid
 router = APIRouter()
 
 @router.post("/create/", response_model=Category)
-async def create_category(name: Annotated[str, Form(..., description='Название')]):
+async def create_category(name: str = Query(..., description='Введите название для создания категории')):
     query = categories.insert().values(name=name)
     last_record_id =  await database.execute(query)
     return {**Category(category_id=last_record_id, name=name).dict()}
@@ -21,8 +21,8 @@ async def get_categories():
     query = categories.select()
     return await database.fetch_all(query)
 
-@router.get("/post/{category_id}", response_model=List[Post])
-async def get_posts_in_category(category_id: int):
+@router.get("/posts/{category_id}", response_model=List[Category])
+async def get_posts_in_category(category_id: int = Path(..., description='Введите ID категории для вывода')):
     query = categories.select().where(categories.c.category_id == category_id)
     category = await database.fetch_one(query)
     if category:
@@ -38,8 +38,8 @@ async def update_category(category_id: int, name: str):
     await database.execute(query)
     return {**Category(category_id=category_id, name=name).dict()}
 
-@router.delete("/delete/{category_id}")
-async def delete_category(category_id: int):
+@router.delete("/delete/{category_id}" , response_model=List[Category], description='При удалении категории удаляются посты которые относятся к этой категории')
+async def delete_category(category_id: int = Path(..., description='Введите ID категории удаления')):
     query = categories.select().where(categories.c.category_id == category_id)
     category = await database.fetch_one(query)
     if not category:

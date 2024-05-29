@@ -5,10 +5,10 @@ from pydantic import BaseModel
 class Post(BaseModel):
     post_id: int
     title: str
-    content: str
-    published_at: datetime
+    description: str
     category_id: int
     user_id: int
+    published_at: datetime
     is_published: bool = False
 
     class Config:
