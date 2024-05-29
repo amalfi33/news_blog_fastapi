@@ -10,20 +10,20 @@ import uuid
 
 router = APIRouter()
 
-@router.post("/category-create/", response_model=Category)
+@router.post("/create/", response_model=Category)
 async def create_category(name: Annotated[str, Form(..., description='Название')]):
     query = categories.insert().values(name=name)
     last_record_id =  await database.execute(query)
-    return {**Category(id=last_record_id, name=name).dict()}
+    return {**Category(category_id=last_record_id, name=name).dict()}
 
-@router.get("/get-all-category/", response_model=List[Category])
+@router.get("/get/", response_model=List[Category])
 async def get_categories():
     query = categories.select()
     return await database.fetch_all(query)
 
-@router.get("/get-posts-in-category/{category_id}", response_model=List[Post])
+@router.get("/post/{category_id}", response_model=List[Post])
 async def get_posts_in_category(category_id: int):
-    query = categories.select().where(categories.c.id == category_id)
+    query = categories.select().where(categories.c.category_id == category_id)
     category = await database.fetch_one(query)
     if category:
         query = posts.select().where(posts.c.category_id == category_id)
@@ -32,14 +32,21 @@ async def get_posts_in_category(category_id: int):
     else:
         raise HTTPException(status_code=404, detail="Категория не найдена")
 
-@router.put("/update-category/{category_id}", response_model=Category)
+@router.put("/update/{category_id}", response_model=Category)
 async def update_category(category_id: int, name: str):
-    query = categories.update().where(categories.c.id == category_id).values(name=name)
+    query = categories.update().where(categories.c.category_id == category_id).values(name=name)
     await database.execute(query)
-    return {**Category(id=category_id, name=name).dict()}
+    return {**Category(category_id=category_id, name=name).dict()}
 
-@router.delete("/category-delete/{category_id}")
+@router.delete("/delete/{category_id}")
 async def delete_category(category_id: int):
-    query = categories.delete().where(categories.c.id == category_id)
+    query = categories.select().where(categories.c.category_id == category_id)
+    category = await database.fetch_one(query)
+    if not category:
+        raise HTTPException(status_code=404, detail="Категория не найдена")
+    query = posts.delete().where(posts.c.category_id == category_id)
     await database.execute(query)
-    return {"message": "Категория удалена успешно"}
+    query = categories.delete().where(categories.c.category_id == category_id)
+    await database.execute(query)
+    
+    return {"message": "Категория и связанные с ней публикации успешно удалены"}    

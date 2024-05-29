@@ -4,7 +4,7 @@ from app.database import metadata, engine
 categories = Table(
     "categories",
     metadata,
-    Column("id", Integer, primary_key=True),
+    Column("category_id", Integer, primary_key=True),
     Column("name", String, nullable=False)
 )
 

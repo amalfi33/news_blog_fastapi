@@ -17,15 +17,15 @@ async def register_user(username: str, email: str, password: str):
         hashed_password=hashed_password
     )
     last_record_id = await database.execute(query)
-    return {**User(id=last_record_id, username=username, email=email, hashed_password=hashed_password).dict()}
+    return {**User(user_id=last_record_id, username=username, email=email, hashed_password=hashed_password).dict()}
 
-@router.get("/get-users/", response_model=List[User])
+@router.get("/get/", response_model=List[User])
 async def get_users():
     query = users.select()
     return await database.fetch_all(query)
 
-@router.delete("/delete-user/{user_id}", response_model=User)
+@router.delete("/delete/{user_id}", response_model=User)
 async def delete_user(user_id: int):
-    query = users.delete().where(users.c.id == user_id)
+    query = users.delete().where(users.c.user_id == user_id)
     await database.execute(query)
     return {"message": "Пользователь успешно удален"}

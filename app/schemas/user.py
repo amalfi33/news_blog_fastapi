@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 from .post import Post
 
 class User(BaseModel):
-    id: int
+    user_id: int
     username: str
     email: EmailStr
     hashed_password: str
