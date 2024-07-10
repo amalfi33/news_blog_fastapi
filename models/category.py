@@ -1,10 +1,10 @@
 from sqlalchemy import Table, Column, Integer, String, ForeignKey
-from app.database import metadata, engine
+from databased import metadata, engine
 
 categories = Table(
     "categories",
     metadata,
-    Column("category_id", Integer, primary_key=True),
+    Column("category_id", String, primary_key=True),
     Column("name", String, nullable=False)
 )
 

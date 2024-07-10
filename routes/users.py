@@ -2,9 +2,9 @@ from typing import List
 import uuid
 import bcrypt
 from fastapi import APIRouter, HTTPException
-from app.models.user import users
-from app.database import database
-from app.schemas.user import User , UserResponse
+from models.user import users
+from databased import database
+from schemas.user import User , UserResponse
 
 router = APIRouter()
 
@@ -16,8 +16,15 @@ async def register_user(username: str, email: str, password: str):
         email=email,
         hashed_password=hashed_password
     )
-    last_record_id = await database.execute(query)
-    return {**User(user_id=last_record_id, username=username, email=email, hashed_password=hashed_password).dict()}
+    user_id = str(uuid.uuid4()) 
+    await database.execute(query)
+    user = User(
+        user_id=user_id,
+        username=username,
+        email=email,
+        hashed_password=hashed_password
+    )
+    return user
 
 @router.get("/get/", response_model=List[User])
 async def get_users():
@@ -25,7 +32,7 @@ async def get_users():
     return await database.fetch_all(query)
 
 @router.delete("/delete/{user_id}", response_model=User)
-async def delete_user(user_id: int):
+async def delete_user(user_id: str):
     query = users.delete().where(users.c.user_id == user_id)
     await database.execute(query)
     return {"message": "Пользователь успешно удален"}

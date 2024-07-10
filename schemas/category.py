@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from .post import Post
 
 class Category(BaseModel):
-    category_id: int
+    category_id: str
     name: str
 
     class Config:

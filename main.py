@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.database import database
-from app.routes import users, categories, posts
+from databased import database
+from routes import users, categories, posts
+import uvicorn
+import uuid
 
 app = FastAPI(
     title="news_blog",
@@ -17,3 +19,7 @@ async def lifespan(app: FastAPI):
     await database.connect()
     yield
     await database.disconnect()
+    
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,13 +1,12 @@
 from datetime import datetime
-from typing import Optional
 from pydantic import BaseModel
 
 class Post(BaseModel):
-    post_id: int
+    post_id: str
     title: str
     description: str
-    category_id: int
-    user_id: int
+    category_id: str
+    user_id: str
     published_at: datetime
     is_published: bool = False
 
