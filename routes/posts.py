@@ -16,8 +16,8 @@ async def create_post(title: str = Query(),
                     is_published : bool = Query(False, description='Публикация поста')
                     ):
     published_at = datetime.now()
-    query = posts.insert().values(title=title,description=description,published_at=published_at,category_id=category_id, user_id=user_id , is_published=is_published)
     post_id = str(uuid.uuid4())
+    query = posts.insert().values(post_id=post_id,title=title,description=description,published_at=published_at,category_id=category_id, user_id=user_id , is_published=is_published)
     await database.execute(query)
     post = Post(
         post_id=post_id,
@@ -25,12 +25,18 @@ async def create_post(title: str = Query(),
         description=description,
         published_at=published_at,
         category_id=category_id,
-        user_id=user_id
+        user_id=user_id,
+        is_published = is_published,
         )
     return post
 
 @router.get("/get/", response_model=List[Post])
 async def get_posts():
+    query = posts.select().where(posts.c.is_published == True)
+    return await database.fetch_all(query)
+
+@router.get("/gets/", response_model=List[Post])
+async def gets_posts():
     query = posts.select()
     return await database.fetch_all(query)
 
@@ -45,8 +51,8 @@ async def get_post_id(post_id: str = Path(..., description='Введите ID п
 
 
 @router.put('/update/{post_id}', response_model=Post)
-async def update_post(post_id: str, title: str, content: str):
-    query = posts.update().where(posts.c.post_id == post_id).values(title=title, content=content)
+async def update_post(post_id: str, title: str, description: str, is_published : bool):
+    query = posts.update().where(posts.c.post_id == post_id).values(title=title, description=description , is_published=is_published)
     await database.execute(query)
     query = posts.select().where(posts.c.post_id == post_id)
     return await database.fetch_one(query)

@@ -11,18 +11,17 @@ router = APIRouter()
 @router.post("/register/", response_model=UserResponse)
 async def register_user(username: str, email: str, password: str):
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    user_id = str(uuid.uuid4())
     query = users.insert().values(
-        username=username,
-        email=email,
-        hashed_password=hashed_password
-    )
-    user_id = str(uuid.uuid4()) 
-    await database.execute(query)
-    user = User(
         user_id=user_id,
         username=username,
         email=email,
         hashed_password=hashed_password
+    )
+    await database.execute(query)
+    user = UserResponse(
+        username=username,
+        email=email,
     )
     return user
 
