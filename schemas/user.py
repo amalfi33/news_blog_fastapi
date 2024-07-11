@@ -7,7 +7,6 @@ class User(BaseModel):
     username: str
     email: EmailStr
     hashed_password: str
-    posts: List[Post] = []
 
     class Config:
         from_attributes = True

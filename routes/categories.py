@@ -4,17 +4,13 @@ from sqlalchemy import Select
 from models.category import categories
 from models.post import posts
 from databased import database
-from schemas.category import Category
+from schemas.category import Category , CategoryResponse
 from schemas.post import Post
 import uuid
 
 
 router = APIRouter()
 
-async def category_check(category_id : str):
-    query = categories.select().where(categories.c.category_id == category_id)
-    category = await database.fetch_one(query)
-    return category
     
 @router.post("/create/", response_model=Category)
 async def create_category(name: str = Query(..., description='Введите название для создания категории')):
@@ -29,13 +25,17 @@ async def get_categories():
     query = categories.select()
     return await database.fetch_all(query)
 
-@router.get("/posts/{category_id}", response_model=List[Category])
+@router.get("/posts/{category_id}", response_model=List[Post])
 async def get_posts_in_category(category_id: str = Path(..., description='Введите ID категории для вывода')):
     query = categories.select().where(categories.c.category_id == category_id)
     category = await database.fetch_one(query)
-    if not await category_check(category_id):
-        raise HTTPException(status_code=404, detail="Категория не найдена")
-    return category
+    if not category:
+        raise HTTPException(status_code=404, detail='ФКатегория не была найдена')
+    
+    query = posts.select().where(posts.c.category_id == category_id)
+    post_in_category = await database.fetch_all(query)
+    
+    return post_in_category
 
 @router.put("/update/{category_id}", response_model=Category)
 async def update_category(category_id: str, name: str):
@@ -49,6 +49,7 @@ async def delete_category(category_id: str = Path(..., description='Введит
     query = categories.select().where(categories.c.category_id == category_id)
     category = await database.fetch_one(query)
     if not await category_check(category_id):
+        # FIX PLS
         raise HTTPException(status_code=404, detail="Категория не найдена")
     query = posts.delete().where(posts.c.category_id == category_id)
     await database.execute(query)
